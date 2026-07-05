@@ -1,36 +1,146 @@
-import json
+# Secure API Automation and Testing Service
 
-import pytest
-from fastapi.testclient import TestClient
+A high-performance FastAPI scaffold featuring strict Pydantic validation, JWT/API key security, and asynchronous REST endpoints designed for secure and scalable API automation.
 
-from main import app
+## Features
 
-client = TestClient(app)
+* 15+ REST API endpoints for users, transactions, logs, audit trails, automation jobs, and system status monitoring.
+* API Key and JWT-based authentication for secure access control.
+* Asynchronous request handling using `async/await` for high-performance execution.
+* Synthetic response times optimized for sub-200ms performance.
+* Interactive Swagger/OpenAPI documentation.
+* Strong Pydantic schema validation for complex JSON payloads.
+* Centralized security middleware for authentication and authorization.
 
+## Technology Stack
 
-def test_health_check_returns_healthy():
-    response = client.get("/status/health")
-    assert response.status_code == 200
-    assert response.json()["status"] == "healthy"
+* Python 3.11+
+* FastAPI
+* Pydantic
+* JWT Authentication
+* Uvicorn
+* Pytest
 
+## Installation
 
-def test_issue_token_and_call_protected_endpoint():
-    response = client.post("/auth/token", json={"api_key": "super-secret-api-key"})
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["token_type"] == "bearer"
-    assert "access_token" in payload
+### Prerequisites
 
-    token = payload["access_token"]
-    metrics_response = client.get(
-        "/status/metrics",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert metrics_response.status_code == 200
-    assert "active_users" in metrics_response.json()
+* Python 3.11 or higher
 
+### Install Dependencies
 
-def test_invalid_api_key_fails_authentication():
-    response = client.post("/auth/token", json={"api_key": "invalid_api_key_123"})
-    assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid API key"
+```bash
+cd secure_api_automation_service
+python -m pip install -r requirements.txt
+```
+
+## Running the Service
+
+```bash
+cd secure_api_automation_service
+uvicorn main:app --reload --port 8000
+```
+
+The application will be available at:
+
+```text
+http://localhost:8000
+```
+
+## Authentication
+
+The service supports two authentication methods:
+
+### API Key Authentication
+
+Include the following header in your requests:
+
+```http
+X-API-Key: super-secret-api-key
+```
+
+### JWT Authentication
+
+Obtain a JWT token by calling:
+
+```bash
+curl -X POST http://localhost:8000/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"api_key": "super-secret-api-key"}'
+```
+
+The response will return an access token:
+
+```json
+{
+  "access_token": "<token>",
+  "token_type": "bearer"
+}
+```
+
+Use the token in subsequent requests:
+
+```http
+Authorization: Bearer <token>
+```
+
+## API Documentation
+
+Interactive API documentation is available at:
+
+### Swagger UI
+
+```text
+http://localhost:8000/docs
+```
+
+### ReDoc
+
+```text
+http://localhost:8000/redoc
+```
+
+## Example Endpoints
+
+### User Management
+
+* `POST /users`
+* `GET /users`
+
+### Transaction Management
+
+* `POST /transactions`
+* `GET /transactions`
+
+### Automation Services
+
+* `POST /automation/jobs`
+* `POST /automation/validate`
+
+### System Monitoring
+
+* `GET /status/health`
+* `GET /status/metrics`
+
+## Testing
+
+Run the test suite using:
+
+```bash
+cd secure_api_automation_service
+pytest
+```
+
+A minimal test suite is included to verify authentication and health-check functionality.
+
+## Coding Standards
+
+* Asynchronous handlers are used throughout the service for low-latency execution.
+* Pydantic models enforce strict schema and payload validation.
+* Security middleware centrally validates API keys and JWT tokens.
+* Endpoint metadata includes tags and summaries for automatic OpenAPI generation.
+* Clean service-layer separation improves maintainability and scalability.
+
+## Project Goals
+
+This project demonstrates modern API development practices, including secure authentication, robust validation, asynchronous processing, automated documentation generation, and production-ready FastAPI architecture.
